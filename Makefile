@@ -14,10 +14,10 @@ goose-install:
 	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 migrate-up: goose-install
-	cd migrations && goose mysql "root:pass@/highload" up
+	cd migrations && goose postgres "host=localhost user=postgres password= dbname=postgres port=5432 sslmode=disable" up
 
 migrate-down: goose-install
-	cd migrations && goose mysql "root:pass@/highload" down
+	cd migrations && goose postgres "host=localhost user=postgres password= dbname=postgres port=5432 sslmode=disable" down
 
 test-data:
 	go run cmd/test_data_init/main.go
@@ -28,8 +28,8 @@ swagger-init:
 swagger: swagger-init
 	swag init -g ./internal/server/http/router.go -o api
 
-up-env:
+env-up:
 	MASTER_EXTERNAL_PORT=5433 COMPOSE_PROJECT_NAME=citus docker-compose up -d
 
-up-env:
+env-stop:
 	COMPOSE_PROJECT_NAME=citus docker-compose down -v
