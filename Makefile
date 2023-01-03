@@ -1,5 +1,5 @@
 up:
-	docker-compose -f deployments/docker-compose.yaml up -d
+	go run cmd/message/main.go
 
 test:
 	go test -race ./internal/...
@@ -27,8 +27,10 @@ swagger-init:
 
 swagger: swagger-init
 	swag init -g ./internal/server/http/router.go -o api
-run:
+
+up-env:
 	MASTER_EXTERNAL_PORT=5433 COMPOSE_PROJECT_NAME=citus docker-compose up -d
-stop:
+
+up-env:
 	COMPOSE_PROJECT_NAME=citus docker-compose down -v
 

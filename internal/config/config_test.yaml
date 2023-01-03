@@ -8,16 +8,11 @@ logger:
   level: "debug"
 
 db:
-  mysql:
-    dialect: "mysql"
-    reader_nodes: ['test','test2']
-      - "user:pass@tcp(51.250.92.196:3306)/otus?charset=utf8mb4б"
-      - "user:pass@tcp(158.160.41.186:3306)/otus?charset=utf8mb4"
-      - "user:pass@tcp(158.160.33.72:3306)/otus?charset=utf8mb4"
-    writer_nodes:
-      - "user:pass@tcp(158.160.33.72:3306)/otus?charset=utf8mb4"
+  postgres:
+    dialect: "postgres"
+    dsn: ""
     maxConnLifetimeMinute: 3
     maxConn: 10
 
 repository:
-  type: "mysql"
+  type: "postgres"

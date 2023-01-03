@@ -3,9 +3,13 @@ package main
 import (
 	"flag"
 	"log"
-	"message/internal/app"
+	"math/rand"
 	"message/internal/config"
-	"message/internal/test_data"
+	"message/internal/domain/message"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var configFile string
@@ -21,20 +25,30 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	application := app.New(cfg)
-	err = application.Init()
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  cfg.DB.Postgres.Dsn,
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{})
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
-	generator, err := test_data.NewGenerator(application.DB())
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = generator.GenerateTestData()
-	if err != nil {
-		log.Fatalln(err)
+	for i := 0; i < 100; i++ {
+		msg := &message.Message{
+			FromUserID: uint(rand.Int()),
+			ToUserID:   uint(rand.Int()),
+			Text:       "test",
+			CreatedAt:  time.Now(),
+		}
+		err := db.Exec("INSERT INTO message VALUES (nextval('serial_message_id'), ?,?,?,?,null);",
+			msg.FromUserID,
+			msg.ToUserID,
+			msg.Text,
+			msg.CreatedAt)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
-	log.Println("generate successful")
+	log.Println("Success!")
 }

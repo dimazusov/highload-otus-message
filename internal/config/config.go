@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/spf13/viper"
@@ -25,16 +24,15 @@ type Logger struct {
 	Level string `config:"level"`
 }
 
-type Mysql struct {
-	Dialect               string   `config:"dialect"`
-	ReaderNodes           []string `config:"reader_nodes"`
-	WriterNodes           []string `config:"writer_nodes"`
-	MaxConnLifetimeMinute int      `config:"maxConnLifetimeMinute"`
-	MaxConn               int      `config:"maxConn"`
+type Postgres struct {
+	Dialect               string `config:"dialect"`
+	Dsn                   string `config:"dsn"`
+	MaxConnLifetimeMinute int    `config:"maxConnLifetimeMinute"`
+	MaxConn               int    `config:"maxConn"`
 }
 
 type DB struct {
-	Mysql Mysql `config:"msyql"`
+	Postgres Postgres `config:"msyql"`
 }
 
 type Repository struct {
@@ -80,10 +78,6 @@ func New(filePath string) (*Config, error) {
 		return nil, err
 	}
 
-	res := viper.GetStringSlice("db.mysql.reader_nodes")
-
-	log.Println(res[0])
-
 	cfg := &Config{
 		Server: Server{
 			Http: Http{
@@ -96,12 +90,11 @@ func New(filePath string) (*Config, error) {
 			Level: viper.GetString("logger.level"),
 		},
 		DB: DB{
-			Mysql: Mysql{
-				Dialect:               viper.GetString("db.mysql.dialect"),
-				ReaderNodes:           viper.GetStringSlice("db.mysql.reader_nodes"),
-				WriterNodes:           viper.GetStringSlice("db.mysql.writer_nodes"),
-				MaxConnLifetimeMinute: viper.GetInt("db.mysql.maxConnLifetimeMinute"),
-				MaxConn:               viper.GetInt("db.mysql.maxConn"),
+			Postgres: Postgres{
+				Dialect:               viper.GetString("db.postgres.dialect"),
+				Dsn:                   viper.GetString("db.postgres.dsn"),
+				MaxConnLifetimeMinute: viper.GetInt("db.postgres.maxConnLifetimeMinute"),
+				MaxConn:               viper.GetInt("db.postgres.maxConn"),
 			},
 		},
 		Repository: Repository{

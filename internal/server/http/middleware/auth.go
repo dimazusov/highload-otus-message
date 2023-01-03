@@ -1,39 +1,10 @@
 package middleware
 
 import (
-	"context"
-	"net/http"
+	"message/internal/app"
 
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-
-	"message/internal/app"
-	"message/internal/domain/auth_token"
 )
-
-func Auth(app *app.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		values, ok := c.Request.Header["X-Auth-Token"]
-		if !ok {
-			c.AbortWithStatus(http.StatusForbidden)
-			return
-		}
-		if len(values) == 0 {
-			c.AbortWithStatus(http.StatusForbidden)
-			return
-		}
-		_, err := app.Domain.AuthToken.Service.Parse(context.Background(), values[0])
-		if err != nil {
-			if errors.Is(err, auth_token.ErrWrongToken) {
-				c.AbortWithStatus(http.StatusForbidden)
-				return
-			}
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		c.Next()
-	}
-}
 
 func Cors(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {

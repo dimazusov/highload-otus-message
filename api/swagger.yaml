@@ -1,0 +1,185 @@
+definitions:
+  api_error.Error:
+    properties:
+      error:
+        type: string
+    type: object
+  message.Message:
+    properties:
+      created_at:
+        type: string
+      from_user_id:
+        type: integer
+      id:
+        type: integer
+      text:
+        type: string
+      to_user_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  message.MessagesList:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/message.Message'
+        type: array
+    type: object
+info:
+  contact: {}
+  description: message api
+  title: Swagger API
+  version: "1.0"
+paths:
+  /message:
+    put:
+      consumes:
+      - application/json
+      description: update message
+      operationId: update-message
+      parameters:
+      - description: updatable message
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/message.Message'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_error.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_error.Error'
+      summary: update message
+  /message/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete message by id
+      operationId: delete-message-by-id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_error.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_error.Error'
+      summary: delete message by id
+    get:
+      consumes:
+      - application/json
+      description: get message by id
+      operationId: get-message-by-id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/message.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_error.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_error.Error'
+      summary: get message by id
+  /messages:
+    get:
+      consumes:
+      - application/json
+      description: get messages by params
+      operationId: get-messages
+      parameters:
+      - description: with organization
+        in: query
+        name: with_organization
+        type: boolean
+      - description: per page
+        in: query
+        name: per_page
+        type: integer
+      - description: page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/message.MessagesList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_error.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_error.Error'
+      summary: get messages
+  /send-message:
+    post:
+      consumes:
+      - application/json
+      description: create message
+      operationId: create-message
+      parameters:
+      - description: creatable message
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/message.Message'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/message.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_error.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_error.Error'
+      summary: create message
+swagger: "2.0"

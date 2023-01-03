@@ -2,62 +2,44 @@ package app
 
 import (
 	"context"
-	"database/sql"
-	"time"
+	"message/internal/domain/message"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"message/internal/cache"
 	"message/internal/config"
-	"message/internal/domain/auth_token"
-	"message/internal/domain/user"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
 )
 
 type Domain struct {
-	User      DomainUser
-	AuthToken DomainAuthToken
+	Message DomainMessage
 }
 
-type DomainAuthToken struct {
-	Service auth_token.Service
-}
-
-type DomainUser struct {
-	Repository user.Repository
-	Service    user.Service
-}
-
-type Storage struct {
-	writerNodes  []*sql.DB
-	readersNodes []*sql.DB
+type DomainMessage struct {
+	Service message.Service
 }
 
 type App struct {
-	cfg     *config.Config
-	storage *Storage
-	Cache   cache.Cache
-	Domain  Domain
+	cfg    *config.Config
+	db     *gorm.DB
+	Cache  cache.Cache
+	Domain Domain
 }
 
 func New(config *config.Config) *App {
 	return &App{cfg: config}
 }
 
-func (m *App) DB() *Storage {
-	return m.storage
+func (m *App) DB() *gorm.DB {
+	return m.db
 }
 
 func (m *App) Init() error {
 	if err := m.initDB(); err != nil {
-		return err
-	}
-	//if err := m.initCache(); err != nil {
-	//	return err
-	//}
-	if err := m.initRepositories(); err != nil {
 		return err
 	}
 	if err := m.initServices(); err != nil {
@@ -69,33 +51,12 @@ func (m *App) Init() error {
 
 func (m *App) initDB() error {
 	switch m.cfg.Repository.Type {
-	case "mysql":
-		m.storage = &Storage{
-			readersNodes: make([]*sql.DB, 0, len(m.cfg.DB.Mysql.ReaderNodes)),
-			writerNodes:  make([]*sql.DB, 0, len(m.cfg.DB.Mysql.WriterNodes)),
+	case "postgres":
+		db, err := gorm.Open(postgres.Open(m.cfg.DB.Postgres.Dsn), &gorm.Config{})
+		if err != nil {
+			return err
 		}
-
-		for _, wNode := range m.cfg.DB.Mysql.WriterNodes {
-			db, err := sql.Open(m.cfg.DB.Mysql.Dialect, wNode)
-			if err != nil {
-				return errors.Wrap(err, "cannot connect to db")
-			}
-			db.SetConnMaxLifetime(time.Minute * 3)
-			db.SetMaxOpenConns(m.cfg.DB.Mysql.MaxConn)
-			db.SetMaxIdleConns(m.cfg.DB.Mysql.MaxConn)
-			m.storage.writerNodes = append(m.storage.writerNodes, db)
-		}
-
-		for _, rNode := range m.cfg.DB.Mysql.ReaderNodes {
-			db, err := sql.Open(m.cfg.DB.Mysql.Dialect, rNode)
-			if err != nil {
-				return errors.Wrap(err, "cannot connect to db")
-			}
-			db.SetConnMaxLifetime(time.Minute * 3)
-			db.SetMaxOpenConns(m.cfg.DB.Mysql.MaxConn)
-			db.SetMaxIdleConns(m.cfg.DB.Mysql.MaxConn)
-			m.storage.readersNodes = append(m.storage.readersNodes, db)
-		}
+		m.db = db
 	}
 	return nil
 }
@@ -115,15 +76,8 @@ func (m *App) initCache() (err error) {
 	return nil
 }
 
-func (m *App) initRepositories() (err error) {
-	m.Domain.User.Repository = user.NewRepository(m.storage.readersNodes, m.storage.writerNodes)
-
-	return nil
-}
-
 func (m *App) initServices() (err error) {
-	m.Domain.User.Service = user.NewService(m.Domain.User.Repository)
-	m.Domain.AuthToken.Service = auth_token.NewService()
-
+	rep := message.NewRepository(m.db)
+	m.Domain.Message.Service = *message.New(rep)
 	return nil
 }
