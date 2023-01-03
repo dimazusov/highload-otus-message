@@ -20,7 +20,7 @@ migrate-down: goose-install
 	cd migrations && goose mysql "root:pass@/highload" down
 
 test-data:
-	docker-compose -f deployments/docker-compose.yaml exec app sh -c "/opt/social/testdatagen --config=/etc/social/config.yaml"
+	go run cmd/test_data_init/main.go
 
 swagger-init:
 	go get -u github.com/swaggo/swag/cmd/swag
@@ -33,4 +33,3 @@ up-env:
 
 up-env:
 	COMPOSE_PROJECT_NAME=citus docker-compose down -v
-
